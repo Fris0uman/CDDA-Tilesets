@@ -4,12 +4,12 @@
 #
 # The release archive will be named using the version number from the tag (e.g. UltimateCataclysm-1.0)
 
+name: Make Release
+concurrency: release
 on:
   push:
     branches:
       - automation
-
-name: Make Release
 
 env:
   COMPOSE_ARGS: --use-all --obsolete-fillers --format-json
@@ -79,45 +79,13 @@ jobs:
           - name: Altica
             artifact: Altica
             tileset_dir: gfx/Altica
-
           - name: BrownLikeBears
             artifact: BrownLikeBears
             tileset_dir: gfx/BrownLikeBears
-
-          - name: Chibi_Ultica
-            artifact: Chibi_Ultica
-            tileset_dir: gfx/Chibi_Ultica
-
-          - name: HollowMoon
-            artifact: HollowMoon
-            tileset_dir: gfx/HollowMoon
-
-          - name: Larwick_Overmap
-            artifact: Larwick_Overmap
-            tileset_dir: gfx/Larwick_Overmap
-
-          - name: MShockXotto+
-            artifact: MShockXotto+
-            tileset_dir: gfx/MShockXotto\+
-
-          - name: NeoDays
-            artifact: NeoDaysTileset
-            tileset_dir: gfx/NeoDays
-
-          - name: Retrodays
-            artifact: RetroDaysTileset
-            tileset_dir: gfx/Retrodays
-
-          - name: SurveyorsMap
-            artifact: SurveyorsMap
-            tileset_dir: gfx/SurveyorsMap
-
-          - name: UltimateCataclysm
-            artifact: UltimateCataclysm
-            tileset_dir: gfx/UltimateCataclysm
-
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    env:
+        ZSTD_CLEVEL: 17
     steps:
       - name: Install Dependencies
         run: |
