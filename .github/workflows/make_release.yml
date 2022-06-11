@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 12 * * sun'
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   release:
     name: Create Release
@@ -37,6 +40,13 @@ jobs:
           tag: ${{ steps.generate_env_vars.outputs.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Previous tag
+        id: previous_tag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+      - name: Abort if there are no changes
+        run: |
+          # exit 1 if there are no changes, exit 0 if there are changes
+          git diff ${{ steps.previous_tag.outputs.tag }} | grep ""
       - name: Push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v5.5
@@ -45,9 +55,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: ${{ steps.generate_env_vars.outputs.tag_name }}
           tag_prefix: ""
-      - name: Get Previous tag
-        id: previous_tag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
+      - name: "Generate release notes"
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/I-am-Erk/CDDA-Tilesets/releases/generate-notes \
+            -f tag_name='${{ steps.generate_env_vars.outputs.tag_name }}' \
+            -f target_commitish='master' \
+            -q .body > CHANGELOG.md
       - name: Create release
         id: create_release
         uses: actions/create-release@main
@@ -57,8 +73,7 @@ jobs:
         with:
           tag_name: ${{ steps.generate_env_vars.outputs.tag_name }}
           release_name: ${{ steps.generate_env_vars.outputs.release_name }}
-          body: |
-            Full Changelog [${{ steps.previous_tag.outputs.tag }}...${{ steps.generate_env_vars.outputs.tag_name }}](https://github.com/${{ github.repository }}/compare/${{ steps.previous_tag.outputs.tag }}...${{ steps.generate_env_vars.outputs.tag_name }})
+          body_path: ./CHANGELOG.md
           draft: false
           prerelease: false
 
@@ -72,43 +87,43 @@ jobs:
           - name: Altica
             artifact: Altica
             tileset_dir: gfx/Altica
-            compose_args: --use-all --obsolete-fillers
+            compose_args: --use-all --obsolete-fillers --format-json
           - name: BrownLikeBears
             artifact: BrownLikeBears
             tileset_dir: gfx/BrownLikeBears
-            compose_args: --use-all --obsolete-fillers
+            compose_args: --use-all --obsolete-fillers --format-json
           - name: ChibiUltica
             artifact: ChibiUltica
             tileset_dir: gfx/Chibi_Ultica
-            compose_args: --use-all
+            compose_args: --use-all --format-json
           - name: HollowMoon
             artifact: HollowMoon
             tileset_dir: gfx/HollowMoon
-            compose_args: --use-all --obsolete-fillers
+            compose_args: --use-all --obsolete-fillers --format-json
           - name: Larwick_Overmap
             artifact: Larwick_Overmap
             tileset_dir: gfx/Larwick_Overmap
-            compose_args: --use-all
-          - name: MshockXotto+
-            artifact: MShockXotto+
+            compose_args: --use-all --format-json
+          - name: MShockXotto+
+            artifact: MshockXotto+
             tileset_dir: gfx/MShockXotto+
-            compose_args: --use-all
+            compose_args: --use-all --format-json
           - name: NeoDays
             artifact: NeoDaysTileset
             tileset_dir: gfx/NeoDays
-            compose_args: --use-all
+            compose_args: --use-all --format-json
           - name: Retrodays
             artifact: RetroDaysTileset
             tileset_dir: gfx/Retrodays
-            compose_args: --use-all
+            compose_args: --use-all --format-json
           - name: SurveyorsMap
             artifact: SurveyorsMap
             tileset_dir: gfx/SurveyorsMap
-            compose_args: --use-all
+            compose_args: --use-all --format-json
           - name: UltimateCataclysm
             artifact: UltimateCataclysm
             tileset_dir: gfx/UltimateCataclysm
-            compose_args: --use-all --obsolete-fillers
+            compose_args: --use-all --obsolete-fillers --format-json
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     steps:
